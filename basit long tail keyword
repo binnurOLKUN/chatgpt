@@ -1,0 +1,32 @@
+function custom_search_query_vars($query_vars) {
+    if (isset($query_vars['s']) && isset($query_vars['post_type']) && $query_vars['post_type'] === 'product') {
+        $search_keywords = ['keyword1', 'keyword2', 'keyword3']; // İndexlemek istediğiniz kelimeler
+        $search_term = $query_vars['s'];
+
+        foreach ($search_keywords as $keyword) {
+            if (stripos($search_term, $keyword) !== false) {
+                // Arama terimi belirli kelimelerden birini içeriyorsa, noindex meta tagını kaldırın ve index meta tagını ekleyin
+                add_action('wp_head', function() use ($keyword, $search_term) {
+                    // noindex meta taglarını kaldır
+                    ob_start(function($output) {
+                        return preg_replace('/<meta[^>]+name=["\']robots["\'][^>]*content=["\']noindex[^>]*>/i', '', $output);
+                    });
+
+                    // index, follow meta taglarını ekle
+                    echo '<meta name="robots" content="index, follow">';
+                    
+                    // meta description güncelle
+                    echo '<meta name="description" content="Geniş ürün yelpazemiz ile aradığınız ' . esc_attr($search_term) . ' ve diğer ürünleri anında keşfedin ve toptan fiyatına satın alın.">';
+
+                    // meta title güncelle
+                    echo '<title>' . esc_attr($search_term) . ', Toptan Fiyatlar ve Binlerce Çeşit - ' . get_bloginfo('name') . '</title>';
+
+                    ob_end_flush();
+                }, 0); // Erken çalıştırılması için priority 0 kullanıldı
+                break;
+            }
+        }
+    }
+    return $query_vars;
+}
+add_filter('request', 'custom_search_query_vars');
