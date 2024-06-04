@@ -1,0 +1,45 @@
+function display_subcategories_or_parent_category() {
+    if ( is_product_category() ) {
+        $current_category = get_queried_object();
+        $args = array(
+            'child_of'     => $current_category->term_id,
+            'taxonomy'     => 'product_cat',
+            'hide_empty'   => false,
+            'title_li'     => '',
+            'orderby'      => 'name',
+            'order'        => 'ASC'
+        );
+        
+        $subcategories = get_categories( $args );
+
+        echo '<div class="subcategory-menu">';
+
+
+        if ( ! empty( $subcategories ) ) {
+            echo '<ul class="subcategory-menu-list">';
+            
+            foreach ( $subcategories as $subcategory ) {
+                $link = get_term_link( $subcategory );
+                echo '<li><a href="' . esc_url( $link ) . '">' . esc_html( $subcategory->name ) . '</a></li>';
+            }
+
+            echo '</ul>';
+        } else {
+            // Alt kategori yoksa üst kategoriyi listele
+            $parent_category = get_term( $current_category->parent, 'product_cat' );
+            
+            if ( $parent_category && ! is_wp_error( $parent_category ) ) {
+       
+                echo '<ul class="subcategory-menu-list">';
+                
+                $link = get_term_link( $parent_category );
+                echo '<li><a href="' . esc_url( $link ) . '">' . esc_html( $parent_category->name ) . '</a></li>';
+
+                echo '</ul>';
+            }
+        }
+
+        echo '</div>';
+    }
+}
+add_action( 'woocommerce_before_main_content', 'display_subcategories_or_parent_category', 15 );
